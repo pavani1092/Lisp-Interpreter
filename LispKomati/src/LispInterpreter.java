@@ -22,11 +22,11 @@ public class LispInterpreter {
 		String[] exps = (ip.toString()).split("\\$");
 		int i =1;
 		for(String e:exps) {
-			Tokenizer tokenizer = new Tokenizer(e);
-			SExpr res = tokenizer.process();
+			ParseInput parser = new ParseInput(e);
+			SExpr res = parser.process();
 			System.out.print((i++)+". ");
 			if(res == null)
-				System.out.println(tokenizer.getError());
+				System.out.println(parser.getError());
 			else 
 				System.out.println(res.toString());
 		}
