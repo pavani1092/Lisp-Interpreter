@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 /**
  * @author Pavani Komati
- * Tokenizes the given raw string and reads each token
+ * Tokenizes the given raw string, reads each token and returns as an S-Expression
  */
 public class Tokenizer {
 	private ArrayList<String> tokenList;
@@ -31,8 +31,8 @@ public class Tokenizer {
 		skippedSpace = false;
 		if(hasMoreTokens()) {
 			String str = nextToken();
-			if(str.isEmpty()||str.equals("")||str.equals(" ")) {
-				SExpr temp = ParseInput.prev;
+			if(str.isEmpty()||str.equals("")||str.equals(" ")) {// skipping space
+				SExpr temp = ParseInput.prev;// saving previous state
 				ParseInput.current = checkNextToken();
 				ParseInput.prev = temp;
 				skippedSpace = true;
@@ -44,14 +44,14 @@ public class Tokenizer {
 				ParseInput.current = new SExpr(".", Utility.DOT);
 			else if(str.matches("^[-+]?\\d+?$")) {
 				if(str.length()>6) { // integer greater than 6 digits{
-					ParseInput.ErrorMessage += " Invalid int atam with more than 6 digits. ";
+					ParseInput.ErrorMessage += " Invalid int atom with more than 6 digits. ";
 					ParseInput.current = null;
 				}else
 					ParseInput.current = new SExpr(str,Utility.INT_ATOM);
 			}
 			else if(str.matches("^[A-Za-z]+[0-9]*[A-Za-z]*?$")) {
 				if(str.length()>10) { // String greater than 10 letters{
-					ParseInput.ErrorMessage += " Invalid sym atam with more than 10 letters. ";
+					ParseInput.ErrorMessage += " Invalid sym atom with more than 10 letters. ";
 					ParseInput.current = null;
 				}else {
 					str = str.toUpperCase();
