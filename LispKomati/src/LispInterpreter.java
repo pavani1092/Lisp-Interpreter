@@ -15,6 +15,7 @@ public class LispInterpreter {
 		
 		//taking input until string ends with $$
 		do {
+			ip.append(" ");
 			ip.append(sc.nextLine());
 		}while(ip.length()<2 || !(ip.substring(ip.length()-2).equals("$$")));
 		

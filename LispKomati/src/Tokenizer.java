@@ -12,13 +12,12 @@ public class Tokenizer {
 	private int braceCount;
 	private String ErrorMessage = "error!!";
 	private SExpr prev,current;
+	private boolean skippedSpace;
 	public Tokenizer(String str) {
 		rawString = str;
 	}
 	
 	private boolean hasMoreTokens() {
-		while(tokenList.size()>0 && tokenList.get(0).length()==0)
-			tokenList.remove(0);
 		return tokenList.size() > 0;
 	}
 	
@@ -33,16 +32,18 @@ public class Tokenizer {
 			nxtToken = current.type;
 		switch(nxtToken) {
 			case Utility.OPEN:
+				boolean tempSkippedSpace = skippedSpace;
 				braceCount++;
 				if(readToken() == null)// read for car
 					return null;
 				SExpr car = current;
 				if(current.type == Utility.CLOSE) { // encountered ) 
 					current = new SExpr("NIL", Utility.SYM_ATOM);
+					skippedSpace = tempSkippedSpace;
 					return current;
 				}
 				SExpr dt = readToken();
-				if(dt == null) // read for .
+				if(dt == null) // read for "."
 					return null;
 				if(current.type == Utility.DOT) {// take cdr
 					if(readToken() == null )
@@ -54,16 +55,24 @@ public class Tokenizer {
 						return null;
 					}
 					current = new SExpr(car, prev);
+					skippedSpace = tempSkippedSpace;
 					return current;
 					
 				}else {// list notation
 					ArrayList<SExpr> list = new ArrayList<SExpr>();
 					list.add(car);
 					while(current.type != Utility.CLOSE ){
+						if(!skippedSpace) {
+							ErrorMessage += " SPACE missing in list.";
+							return null;
+						}
+							
 						list.add(current);
 						if(readToken() == null)
 							return null;
+						
 					}
+					skippedSpace = tempSkippedSpace;
 					current = formList(list);
 					return current;
 				}
@@ -102,9 +111,15 @@ public class Tokenizer {
 	private SExpr checkNextToken() {
 		prev = current;
 		current = null;
+		skippedSpace = false;
 		if(hasMoreTokens()) {
 			String str = nextToken();
-			if(str.equals("("))
+			if(str.isEmpty()||str.equals("")||str.equals(" ")) {
+				SExpr temp = prev;
+				current = checkNextToken();
+				prev = temp;
+				skippedSpace = true;
+			}else if(str.equals("("))
 				current = new SExpr("(", Utility.OPEN);
 			else if(str.equals(")"))
 				current = new SExpr(")", Utility.CLOSE);
@@ -132,9 +147,10 @@ public class Tokenizer {
 	}
 	public SExpr process() {
 		rawString.trim();
-		rawString.replace("\n", "");
+		//rawString.replace("\n", " ");
+		rawString = rawString.replaceAll("[\\t\\n\\r]+"," ");
 		//splitting the string on "(", ")"," ","." 
-		String[] tokens = rawString.split("(\\s+)|(\\t+)|(?<=\\()|(?=\\()|(?<=\\))|(?=\\))|(?<=\\.)|(?=\\.)");	
+		String[] tokens = rawString.split("(\\s)|(?<=\\s)|(?<=\\()|(?=\\()|(?<=\\))|(?=\\))|(?<=\\.)|(?=\\.)");	
 		tokenList = new ArrayList<String>(Arrays.asList(tokens));
 		
 		if(readToken()== null)
