@@ -1,6 +1,8 @@
 import java.util.ArrayList;
-import java.util.Arrays;
-
+/**
+ * @author Pavani Komati
+ * Parses the input raw string with the help of tokeniser
+ */
 public class ParseInput {
 	private Tokenizer myTokenizer;
 	private int braceCount;
@@ -73,7 +75,7 @@ public class ParseInput {
 					list.add(car);
 					while(current.type != Utility.CLOSE ){
 						if(!myTokenizer.skippedSpace) {
-							ErrorMessage += " SPACE missing in list.";
+							ErrorMessage += " SPACE missing in list before "+current.toString();
 							return null;
 						}
 							

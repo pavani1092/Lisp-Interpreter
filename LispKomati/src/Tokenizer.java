@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 import java.util.Arrays;
-
+/**
+ * @author Pavani Komati
+ * Tokenizes the given raw string and reads each token
+ */
 public class Tokenizer {
 	private ArrayList<String> tokenList;
 	public boolean skippedSpace; // to check if there is a space previously
@@ -40,14 +43,24 @@ public class Tokenizer {
 			else if(str.equals("."))
 				ParseInput.current = new SExpr(".", Utility.DOT);
 			else if(str.matches("^[-+]?\\d+?$")) {
-				ParseInput.current = new SExpr(str,Utility.INT_ATOM);
+				if(str.length()>6) { // integer greater than 6 digits{
+					ParseInput.ErrorMessage += " Invalid int atam with more than 6 digits. ";
+					ParseInput.current = null;
+				}else
+					ParseInput.current = new SExpr(str,Utility.INT_ATOM);
 			}
 			else if(str.matches("^[A-Za-z]+[0-9]*[A-Za-z]*?$")) {
-				str = str.toUpperCase();
-				if(SExpr.lookup.containsKey(str))
-					ParseInput.current = SExpr.lookup.get(str);
-				else
-					ParseInput.current = new SExpr(str, Utility.SYM_ATOM);
+				if(str.length()>10) { // String greater than 10 letters{
+					ParseInput.ErrorMessage += " Invalid sym atam with more than 10 letters. ";
+					ParseInput.current = null;
+				}else {
+					str = str.toUpperCase();
+					if(SExpr.lookup.containsKey(str))
+						ParseInput.current = SExpr.lookup.get(str);
+					else
+						ParseInput.current = new SExpr(str, Utility.SYM_ATOM);
+				}
+				
 			}else {
 				ParseInput.ErrorMessage += "Invalid token "+str;
 			}

@@ -1,4 +1,5 @@
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -6,7 +7,7 @@ import java.util.Scanner;
  *
  */
 public class LispInterpreter {
-
+	private static int count = 1;
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub	
 		System.out.println("Enter the List Expressions seperated by $:");
@@ -14,26 +15,33 @@ public class LispInterpreter {
 		StringBuilder ip = new StringBuilder();
 		
 		//taking input until string ends with $$
-		do {
-			ip.append(" ");
-			ip.append(sc.nextLine());
-		}while(ip.length()<2 || !(ip.substring(ip.length()-2).equals("$$")));
-		
-		String[] exps = (ip.toString()).split("\\$");
-		int i =1;
-		for(String e:exps) {
-			ParseInput parser = new ParseInput(e);
-			SExpr res = parser.process();
-			System.out.print((i++)+". ");
-			if(res == null)
-				System.out.println(parser.getError());
-			else 
-				System.out.println(res.toString());
+		String next = sc.nextLine();
+		while(true) {
+			if(next.equals("$$")) {
+				parse(ip.toString());
+				break;
+			}else if(next.equals("$")) {
+				parse(ip.toString());
+				ip.setLength(0);
+			}else {
+				ip.append(" ");
+				ip.append(next);
+			}	
+			next = sc.nextLine();
 		}
-		
 		
 		sc.close();
 		
+	}
+	
+	private static void parse(String e) {
+		ParseInput parser = new ParseInput(e);
+		SExpr res = parser.process();
+		System.out.print((count++)+". ");
+		if(res == null)
+			System.out.println(parser.getError());
+		else 
+			System.out.println(res.toString());
 	}
 
 }
