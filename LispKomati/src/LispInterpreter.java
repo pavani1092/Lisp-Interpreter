@@ -34,13 +34,18 @@ public class LispInterpreter {
 	}
 	
 	private static void parse(String e) {
-		ParseInput parser = new ParseInput(e);
-		SExpr res = parser.process();
-		System.out.print((count++)+". ");
-		if(res == null)
-			System.out.println(parser.getError());
-		else 
-			System.out.println(res.toString());
+		if(e== null || e.trim().length()==0)
+			System.out.print((count++)+". Empty Input");
+		else {
+			ParseInput parser = new ParseInput(e);
+			SExpr res = parser.process();
+			System.out.print((count++)+". ");
+			if(res == null)
+				System.out.println(parser.getError());
+			else 
+				System.out.println(res.toString());
+		}
+		
 	}
 
 }
