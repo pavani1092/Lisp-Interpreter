@@ -65,7 +65,7 @@ public class Tokenizer {
 				ParseInput.ErrorMessage += "Invalid token "+str;
 			}
 		}else {
-			ParseInput.ErrorMessage += "Empty input ";
+			ParseInput.ErrorMessage += "Expected more tokens";
 		}
 		return ParseInput.current;
 	}

@@ -35,7 +35,7 @@ public class LispInterpreter {
 	
 	private static void parse(String e) {
 		if(e== null || e.trim().length()==0)
-			System.out.print((count++)+". Empty Input");
+			System.out.println((count++)+". Empty Input");
 		else {
 			ParseInput parser = new ParseInput(e);
 			SExpr res = parser.process();
