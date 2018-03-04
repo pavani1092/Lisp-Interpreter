@@ -1,4 +1,7 @@
-
+/**
+ * @author Pavani Komati
+ * Utility class to save all the constants
+ */
 public class Utility {
 	public static final int ERROR = -1;
 	public static final int INT_ATOM = 1;

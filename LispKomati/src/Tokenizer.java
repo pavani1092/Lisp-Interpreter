@@ -3,7 +3,7 @@ import java.util.Arrays;
 
 /**
  * @author Pavani Komati
- *
+ * Tokenizes the given string and forms a valid S-Expression with the tokens
  */
 public class Tokenizer {
 	
@@ -11,8 +11,8 @@ public class Tokenizer {
 	private ArrayList<String> tokenList;
 	private int braceCount;
 	private String ErrorMessage = "error!!";
-	private SExpr prev,current;
-	private boolean skippedSpace;
+	private SExpr prev,current; // save the previous and current values of tokens
+	private boolean skippedSpace; // to check if there is a space previously
 	public Tokenizer(String str) {
 		rawString = str;
 	}
@@ -24,23 +24,27 @@ public class Tokenizer {
 	private String nextToken() {
 		return tokenList.remove(0);
 	}
-	
+	/*
+	 * This method always returns a valid SExpr & ., ), ( or 
+	 * null if it encounters an invalid SExpr
+	 * e.g returns complete (2.3) or 2 or abc etc..
+	 */
 	private SExpr readToken() {
 		int nxtToken = Utility.ERROR;
 		checkNextToken();
 		if(current!=null)
 			nxtToken = current.type;
 		switch(nxtToken) {
-			case Utility.OPEN:
+			case Utility.OPEN: 
 				boolean tempSkippedSpace = skippedSpace;
 				braceCount++;
 				if(readToken() == null)// read for car
 					return null;
 				SExpr car = current;
-				if(current.type == Utility.CLOSE) { // encountered ) 
+				if(current.type == Utility.CLOSE) { // encountered ")" 
 					current = new SExpr("NIL", Utility.SYM_ATOM);
 					skippedSpace = tempSkippedSpace;
-					return current;
+					return current; //----------> returns NIL for ()
 				}
 				SExpr dt = readToken();
 				if(dt == null) // read for "."
@@ -56,7 +60,7 @@ public class Tokenizer {
 					}
 					current = new SExpr(car, prev);
 					skippedSpace = tempSkippedSpace;
-					return current;
+					return current;//-----------> returns valid (a.b)
 					
 				}else {// list notation
 					ArrayList<SExpr> list = new ArrayList<SExpr>();
@@ -74,7 +78,7 @@ public class Tokenizer {
 					}
 					skippedSpace = tempSkippedSpace;
 					current = formList(list);
-					return current;
+					return current; //----------> returns valid list (a b c)
 				}
 				
 			case Utility.CLOSE:
@@ -85,6 +89,7 @@ public class Tokenizer {
 				braceCount--;
 				return current;
 			case Utility.DOT:
+				//checking if dot is followed by a valid S-Expr
 				if(prev== null || !(prev.type==Utility.INT_ATOM || prev.type==Utility.SYM_ATOM || prev.type==Utility.NON_ATOM)) {
 					ErrorMessage += " . followed by invalid exp ";
 					return null;
@@ -101,13 +106,14 @@ public class Tokenizer {
 		}
 		
 	}
-	
+	//Forms SExpr from the given list
 	private SExpr formList(ArrayList<SExpr> list) {
 		if(list.size()==0)
 			return new SExpr("NIL", Utility.SYM_ATOM);
 		return new SExpr(list.remove(0), formList(list));
 	}
 	
+	//Reads the next available token and skips a space
 	private SExpr checkNextToken() {
 		prev = current;
 		current = null;
@@ -129,6 +135,7 @@ public class Tokenizer {
 				current = new SExpr(str,Utility.INT_ATOM);
 			}
 			else if(str.matches("^[A-Za-z]+[0-9]*[A-Za-z]*?$")) {
+				str = str.toUpperCase();
 				if(SExpr.lookup.containsKey(str))
 					current = SExpr.lookup.get(str);
 				else
@@ -147,14 +154,16 @@ public class Tokenizer {
 	}
 	public SExpr process() {
 		rawString.trim();
-		//rawString.replace("\n", " ");
+		//replace extra spaces and tabs with single space
 		rawString = rawString.replaceAll("[\\t\\n\\r]+"," ");
 		//splitting the string on "(", ")"," ","." 
 		String[] tokens = rawString.split("(\\s)|(?<=\\s)|(?<=\\()|(?=\\()|(?<=\\))|(?=\\))|(?<=\\.)|(?=\\.)");	
 		tokenList = new ArrayList<String>(Arrays.asList(tokens));
 		
-		if(readToken()== null)
+		if(readToken()== null) {
 			return null;
+		}
+			
 		if(braceCount>0) {
 			ErrorMessage += "Extra Braces ( found ";
 			return null;
