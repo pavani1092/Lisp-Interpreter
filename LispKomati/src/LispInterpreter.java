@@ -38,12 +38,14 @@ public class LispInterpreter {
 			System.out.println((count++)+". Empty Input");
 		else {
 			ParseInput parser = new ParseInput(e);
-			SExpr res = parser.process();
 			System.out.print((count++)+". ");
-			if(res == null)
-				System.out.println(parser.getError());
-			else 
+			try {
+				SExpr res = parser.process();
 				System.out.println(res.toString());
+			}catch(MyException ex) {
+				System.out.println("Error: "+ ex.getMessage());
+			}
+				
 		}
 		
 	}

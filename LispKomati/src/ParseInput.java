@@ -6,27 +6,21 @@ import java.util.ArrayList;
 public class ParseInput {
 	private Tokenizer myTokenizer;
 	private int braceCount;
-	public static String ErrorMessage = "error!!";
 	public static SExpr prev,current; // save the previous and current values of tokens
 	public ParseInput(String rawString) {
-		ErrorMessage = "error!!";
 		prev = current = null;
 		myTokenizer = new Tokenizer(rawString);
 	}
-	public SExpr process() {
+	public SExpr process() throws MyException {
 		
-		if(readInput()== null) {
-			return null;
-		}
+		readInput();
 			
 		if(braceCount>0) {
-			ErrorMessage += "Extra Braces ( found ";
-			return null;
+			throw new MyException("Extra Braces ( found ") ;
 		}
 		
 		if(myTokenizer.hasMoreTokens()) {
-			ErrorMessage += " Extra input after "+ current.toString();
-			return null;
+			throw new MyException(" Extra input after "+ current.toString()) ;
 		}
 			
 		return current;
@@ -37,7 +31,7 @@ public class ParseInput {
 	 * null if it encounters an invalid SExpr
 	 * e.g returns complete (2.3) or 2 or abc etc..
 	 */
-	private SExpr readInput() {
+	private SExpr readInput() throws MyException {
 		int nxtToken = Utility.ERROR;
 		myTokenizer.checkNextToken();
 		if(current!=null)
@@ -63,8 +57,7 @@ public class ParseInput {
 					if(readInput() == null)// for skipping )
 						return null; 
 					if(current.type != Utility.CLOSE) {
-						ErrorMessage += "Missing parenthesis )";
-						return null;
+						throw new MyException( "Missing parenthesis )");
 					}
 					current = new SExpr(car, prev);
 					myTokenizer.skippedSpace = tempSkippedSpace;
@@ -75,8 +68,7 @@ public class ParseInput {
 					list.add(car);
 					while(current.type != Utility.CLOSE ){
 						if(!myTokenizer.skippedSpace) {
-							ErrorMessage += " SPACE missing in list before "+current.toString();
-							return null;
+							throw new MyException( " SPACE missing in list before "+current.toString());
 						}
 							
 						list.add(current);
@@ -91,16 +83,14 @@ public class ParseInput {
 				
 			case Utility.CLOSE:
 				if(braceCount==0) {
-					ErrorMessage += "Invalid parenthesis ) ";
-					return null;
+					throw new MyException( "Invalid parenthesis ) ");
 				}
 				braceCount--;
 				return current;
 			case Utility.DOT:
 				//checking if dot is followed by a valid S-Expr
 				if(prev== null || !(prev.type==Utility.INT_ATOM || prev.type==Utility.SYM_ATOM || prev.type==Utility.NON_ATOM)) {
-					ErrorMessage += " . followed by invalid exp ";
-					return null;
+					throw new MyException( " . followed by invalid exp ");
 				}
 				return current;
 			case Utility.INT_ATOM:
@@ -121,7 +111,4 @@ public class ParseInput {
 		return new SExpr(list.remove(0), formList(list));
 	}
 	
-	public String getError() {
-		return ErrorMessage;
-	}
 }

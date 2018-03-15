@@ -25,7 +25,7 @@ public class Tokenizer {
 	}
 	
 	//Reads the next available token and skips a space
-	public SExpr checkNextToken() {
+	public SExpr checkNextToken() throws MyException {
 		ParseInput.prev = ParseInput.current;
 		ParseInput.current = null;
 		skippedSpace = false;
@@ -44,15 +44,15 @@ public class Tokenizer {
 				ParseInput.current = new SExpr(".", Utility.DOT);
 			else if(str.matches("^[-+]?\\d+?$")) {
 				if(str.length()>6) { // integer greater than 6 digits{
-					ParseInput.ErrorMessage += " Invalid int atom with more than 6 digits. ";
 					ParseInput.current = null;
+					throw new MyException(" Invalid int atom with more than 6 digits.  ") ;
 				}else
 					ParseInput.current = new SExpr(str,Utility.INT_ATOM);
 			}
 			else if(str.matches("^[A-Za-z]+[0-9]*[A-Za-z]*?$")) {
 				if(str.length()>10) { // String greater than 10 letters{
-					ParseInput.ErrorMessage += " Invalid sym atom with more than 10 letters. ";
 					ParseInput.current = null;
+					throw new MyException(" Invalid sym atom with more than 10 letters. ") ;
 				}else {
 					str = str.toUpperCase();
 					if(SExpr.lookup.containsKey(str))
@@ -62,10 +62,10 @@ public class Tokenizer {
 				}
 				
 			}else {
-				ParseInput.ErrorMessage += "Invalid token "+str;
+				throw new MyException( "Invalid token "+str);
 			}
 		}else {
-			ParseInput.ErrorMessage += "Expected more tokens";
+			throw new MyException( "Expected more tokens");
 		}
 		return ParseInput.current;
 	}
