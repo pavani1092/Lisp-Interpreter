@@ -55,10 +55,7 @@ public class Tokenizer {
 					throw new MyException(" Invalid sym atom with more than 10 letters. ") ;
 				}else {
 					str = str.toUpperCase();
-					if(SExpr.lookup.containsKey(str))
-						ParseInput.current = SExpr.lookup.get(str);
-					else
-						ParseInput.current = new SExpr(str, Utility.SYM_ATOM);
+					ParseInput.current = new SExpr(str, Utility.SYM_ATOM);
 				}
 				
 			}else {

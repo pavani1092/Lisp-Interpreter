@@ -1,22 +1,15 @@
-import java.util.HashMap;
+
 
 public class SExpr {
 
-	public static HashMap<String, SExpr> lookup = new HashMap<String, SExpr>();
 	int type = 0;
-	int val = 0;
 	String name = null;
 	SExpr left = null;
 	SExpr right = null;
 
 	public SExpr(String str, int type) {
 		this.type = type;
-		if (type == Utility.INT_ATOM)
-			val = Integer.parseInt(str);
-		else {
-			name = str;
-			lookup.put(name, this);
-		}
+		name = str;
 	}
 
 	public SExpr(SExpr l, SExpr r) {
@@ -24,14 +17,17 @@ public class SExpr {
 		this.left = l;
 		this.right = r;
 	}
-
+	
+	boolean isAtom() {
+		return (type == Utility.INT_ATOM || type == Utility.SYM_ATOM);
+	}
 
 	@Override
 	public String toString() {
 
 		switch (type) {
 			case Utility.INT_ATOM:
-				return Integer.toString(val);
+				return name;
 			case Utility.SYM_ATOM:
 				return name;
 			case Utility.NON_ATOM:

@@ -40,7 +40,8 @@ public class LispInterpreter {
 			ParseInput parser = new ParseInput(e);
 			System.out.print((count++)+". ");
 			try {
-				SExpr res = parser.process();
+				Interpreter in = new Interpreter();
+				SExpr res = in.eval(parser.process());
 				System.out.println(res.toString());
 			}catch(MyException ex) {
 				System.out.println("Error: "+ ex.getMessage());
