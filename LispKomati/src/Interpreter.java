@@ -72,10 +72,45 @@ public class Interpreter {
 			}
 				
 		}
-		throw new MyException("alist doesnt contain value for "+name);
+		throw new MyException("Unbound atom "+name);
 	}
 
-
+	SExpr times(SExpr a, SExpr b) throws MyException {
+		int av = getVal(a);
+		int bv = getVal(b);
+		return new SExpr(Integer.toString(av*bv), Utility.INT_ATOM);
+	}
+	SExpr quotient(SExpr a, SExpr b) throws MyException {
+		int av = getVal(a);
+		int bv = getVal(b);
+		if(bv==0)
+			throw new MyException("divisor cannot be zero!!");
+		return new SExpr(Integer.toString(av/bv), Utility.INT_ATOM);
+	}
+	SExpr remainder(SExpr a, SExpr b) throws MyException {
+		int av = getVal(a);
+		int bv = getVal(b);
+		if(bv==0)
+			throw new MyException("divisor cannot be zero!!");
+		return new SExpr(Integer.toString(av%bv), Utility.INT_ATOM);
+	}
+	SExpr less(SExpr a, SExpr b) throws MyException {
+		int av = getVal(a);
+		int bv = getVal(b);
+		String s = "T";
+		if(av>=bv)
+			s= "NIL";
+		return new SExpr(s, Utility.SYM_ATOM);
+	}
+	SExpr greater(SExpr a, SExpr b) throws MyException {
+		int av = getVal(a);
+		int bv = getVal(b);
+		String s = "T";
+		if(av<=bv)
+			s= "NIL";
+		return new SExpr(s, Utility.SYM_ATOM);
+	}
+	
 	SExpr plus(SExpr a, SExpr b) throws MyException {
 		int av = getVal(a);
 		int bv = getVal(b);
@@ -87,6 +122,12 @@ public class Interpreter {
 		int bv = getVal(b);
 		return new SExpr(Integer.toString(av-bv), Utility.INT_ATOM);
 	}
+	SExpr isInt(SExpr a){
+		if(a.type == Utility.INT_ATOM)
+			return new SExpr("T", Utility.SYM_ATOM);
+		return new SExpr("NIL", Utility.SYM_ATOM);
+	}
+	
 	
 	SExpr atom(SExpr s) {
 		if((s.type == Utility.INT_ATOM) ||(s.type == Utility.SYM_ATOM))
@@ -95,9 +136,9 @@ public class Interpreter {
 	}
 	
 	SExpr eq(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
-		if(av==bv)
+		if(!a.isAtom()|| !b.isAtom())
+			throw new MyException("eq expects only atoms");
+		if(a.name.equals(b.name))
 			return new SExpr("T", Utility.SYM_ATOM);
 		return new SExpr("NIL", Utility.SYM_ATOM);
 	}
@@ -136,6 +177,7 @@ public class Interpreter {
 	}
 	
 	SExpr eval(SExpr e) throws MyException {
+		//System.out.println("in eval "+e.toString());
 		if(e.isAtom()) {
 			if(isT(e)|| isNIL(e))
 				return e;
@@ -146,8 +188,12 @@ public class Interpreter {
 		if(carEx.isAtom()) {
 			if(carEx.type == Utility.SYM_ATOM) {
 				String fn = carEx.name;
-				if(fn.equals("QUOTE"))
+				if(fn.equals("QUOTE")) {
+					int l = length(cdr(e));
+					if(l!=1)
+						throw new MyException("quote expects 1 arg, received "+l);
 					return car(cdr(e));
+				}
 				if(fn.equals("COND"))
 					return evcon(cdr(e));
 				if(fn.equals("DEFUN"))
@@ -157,27 +203,90 @@ public class Interpreter {
 		}	
 		throw new MyException("error in eval");
 	}
+	private int length(SExpr e) throws MyException{
+		if(isNIL(e))
+			return 0;
+		if(e.isAtom())
+			return 1;
+		return 1+length(cdr(e));
+	}
+
 	private SExpr apply(SExpr f, SExpr x) throws MyException {
+		//System.out.println("in apply "+x.toString() +" of "+f.name);
+		Func fnDef = getFnDef(f);
+		if(fnDef!=null) {
+			addpairs(fnDef.parameters,getlist(x));
+			SExpr res = eval(fnDef.body);
+			removepairs(fnDef.parameters);
+			return res;
+		}
+		
 		if(f.type == Utility.SYM_ATOM) {
 			String fn = f.name;
+			int l = length(x);
 			switch (fn) {
-				case "CAR": return car(car(x));
-				case "CDR": return cdr(car(x));
-				case "CONS": return cons(car(x), car(cdr(x)));
-				case "ATOM": return atom(x);
-				case "NULL": return _null(x);
-				case "EQ" : return eq(car(x),car(cdr(x)));
-				case "PLUS" : return plus(car(x),car(cdr(x)));
-				case "MINUS" : return minus(car(x),car(cdr(x)));
+				case "CAR": 
+					if(l!=1)
+						throw new MyException("car expects 1 arg, received "+l);
+					return car(car(x));
+				case "CDR": 
+					if(l!=1)
+						throw new MyException("cdr expects 1 arg, received "+l);
+					return cdr(car(x));
+				case "CONS":
+					if(l!=2)
+						throw new MyException("cons expects 2 arg, received "+l);
+					return cons(car(x), car(cdr(x)));
+				case "ATOM":
+					if(l!=1)
+						throw new MyException("atom expects 1 arg, received "+l);
+					return atom(car(x));
+				case "NULL": 
+					if(l!=1)
+						throw new MyException("null expects 1 arg, received "+l);
+					return _null(car(x));
+				case "EQ" : 
+					if(l!=2)
+						throw new MyException("eq expects 2 arg, received "+l);
+					return eq(car(x),car(cdr(x)));
+				case "PLUS" : 
+					if(l!=2)
+						throw new MyException("plus expects 2 arg, received "+l);
+					return plus(car(x),car(cdr(x)));
+				case "MINUS" :
+					if(l!=2)
+						throw new MyException("minus expects 2 arg, received "+l);
+					return minus(car(x),car(cdr(x)));
+				case "INT" : 
+					if(l!=1)
+						throw new MyException("int expects 1 arg, received "+l);
+					return isInt(car(x));
+				case "TIMES":
+					if(l!=2)
+						throw new MyException("times expects 2 arg, received "+l);
+					return times(car(x),car(cdr(x)));
+				case "QUOTIENT":
+					if(l!=2)
+						throw new MyException("quotient expects 2 arg, received "+l);
+					return quotient(car(x),car(cdr(x)));
+				case "REMAINDER":
+					if(l!=2)
+						throw new MyException("remainder expects 2 arg, received "+l);
+					return remainder(car(x),car(cdr(x)));
+				case "LESS":
+					if(l!=2)
+						throw new MyException("less expects 2 arg, received "+l);
+					return less(car(x),car(cdr(x)));
+				case "GREATER": 
+					if(l!=2)
+						throw new MyException("greater expects 2 arg, received "+l);
+					return greater(car(x),car(cdr(x)));
 				default:
 			}		
 		}
 		
-		Func fnDef = getFnDef(f);
-		addpairs(fnDef.parameters,getlist(x));
-		SExpr res = eval(fnDef.body);
-		removepairs(fnDef.parameters);
-		return res;
+		throw new MyException("Could not find a function named "+f.name);
+
 	}
 	private void removepairs(ArrayList<String> parlist) {
 		for( String s : parlist) {
@@ -207,7 +316,7 @@ public class Interpreter {
 		}
 		
 	}
-	private Func getFnDef(SExpr f) throws MyException {
+	private Func getFnDef(SExpr f) {
 		if(f.type == Utility.SYM_ATOM) {
 			if(dlist.containsKey(f.name)) {
 				Stack<Func> stack = dlist.get(f.name);
@@ -215,10 +324,11 @@ public class Interpreter {
 					return stack.peek();
 			}
 		}
-		throw new MyException("Could not find a function named "+f.name);
+		return null;
 	}
 	
 	private SExpr evlis(SExpr list) throws MyException {
+		//System.out.println("in evlis "+ list.toString());
 		if(isNIL(list))
 			return list;
 		return cons(eval(car(list)),evlis(cdr(list)));
@@ -232,10 +342,15 @@ public class Interpreter {
 		return new SExpr(fn.name, Utility.SYM_ATOM);
 	}
 	private SExpr evcon(SExpr be) throws MyException {
+		//System.out.println("in evcon "+ be.toString() );
 		if(isNIL(be))
 			throw new MyException("Error in boolean condition");
-		if(isT(eval(car(car(be)))))
-			return eval (car(cdr(car(be))));
+		SExpr be_car = car(be);
+		int l = length(be_car);
+		if(l!=2)
+			throw new MyException("Cond case expects 2 args, received "+l);
+		if(!isNIL(eval(car(be_car))))
+			return eval (car(cdr(be_car)));
 		return evcon(cdr(be));
 	}
 	

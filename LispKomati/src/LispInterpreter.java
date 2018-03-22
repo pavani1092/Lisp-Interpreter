@@ -41,7 +41,9 @@ public class LispInterpreter {
 			System.out.print((count++)+". ");
 			try {
 				Interpreter in = new Interpreter();
-				SExpr res = in.eval(parser.process());
+				SExpr parse = parser.process();
+				System.out.println("dot notation "+parse.toString());
+				SExpr res = in.eval(parse);
 				System.out.println(res.toString());
 			}catch(MyException ex) {
 				System.out.println("Error: "+ ex.getMessage());

@@ -72,7 +72,8 @@ public class ParseInput {
 						}
 							
 						list.add(current);
-						if(readInput() == null)
+						SExpr s = readInput();
+						if(s == null || s.type == Utility.DOT)
 							return null;
 						
 					}
