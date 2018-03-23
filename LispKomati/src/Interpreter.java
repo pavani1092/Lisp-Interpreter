@@ -2,8 +2,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
 
-
-
 public class Interpreter {
 	
 	class Func{
@@ -53,22 +51,24 @@ public class Interpreter {
 	public Interpreter() {
 	}
 	
-	HashMap<String,Stack<String>> alist = new HashMap<>();
+	HashMap<String,Stack<SExpr>> alist = new HashMap<>();
 	static HashMap<String,Stack<Func>> dlist = new HashMap<>();
 	
-	int getVal(SExpr a) throws MyException {
+	SExpr getVal(SExpr a) throws MyException {
 		if(a.type == Utility.INT_ATOM )
-			return Integer.parseInt(a.name);
+			return a;
 		else {
+//			while(!isNIL(a) && !isT(a) && a.type == Utility.SYM_ATOM )
+//				a =  getFrom_alist(a.name);
 			return getFrom_alist(a.name);
 		}
 			
 	}
-	private int getFrom_alist(String name) throws MyException {
+	private SExpr getFrom_alist(String name) throws MyException {
 		if(alist.containsKey(name)) {
-			Stack<String> s = alist.get(name);
+			Stack<SExpr> s = alist.get(name);
 			if(!s.isEmpty()) {
-				return Integer.parseInt(s.peek());
+				return s.peek();
 			}
 				
 		}
@@ -76,35 +76,41 @@ public class Interpreter {
 	}
 
 	SExpr times(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		return new SExpr(Integer.toString(av*bv), Utility.INT_ATOM);
 	}
+	private int getIntVal(SExpr a) throws MyException {
+		SExpr s = getVal(a);
+		if(s.type != Utility.INT_ATOM)
+			throw new MyException("expected int atom but received non atom");
+		return Integer.parseInt(s.name);
+	}
 	SExpr quotient(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		if(bv==0)
 			throw new MyException("divisor cannot be zero!!");
 		return new SExpr(Integer.toString(av/bv), Utility.INT_ATOM);
 	}
 	SExpr remainder(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		if(bv==0)
 			throw new MyException("divisor cannot be zero!!");
 		return new SExpr(Integer.toString(av%bv), Utility.INT_ATOM);
 	}
 	SExpr less(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		String s = "T";
 		if(av>=bv)
 			s= "NIL";
 		return new SExpr(s, Utility.SYM_ATOM);
 	}
 	SExpr greater(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		String s = "T";
 		if(av<=bv)
 			s= "NIL";
@@ -112,14 +118,14 @@ public class Interpreter {
 	}
 	
 	SExpr plus(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		return new SExpr(Integer.toString(av+bv), Utility.INT_ATOM);
 	}
 	
 	SExpr minus(SExpr a, SExpr b) throws MyException {
-		int av = getVal(a);
-		int bv = getVal(b);
+		int av = getIntVal(a);
+		int bv = getIntVal(b);
 		return new SExpr(Integer.toString(av-bv), Utility.INT_ATOM);
 	}
 	SExpr isInt(SExpr a){
@@ -181,8 +187,7 @@ public class Interpreter {
 		if(e.isAtom()) {
 			if(isT(e)|| isNIL(e))
 				return e;
-			int x = getVal(e);
-			return new SExpr(Integer.toString(x), Utility.INT_ATOM);
+			return getVal(e);
 		}
 		SExpr carEx = car(e);
 		if(carEx.isAtom()) {
@@ -290,27 +295,29 @@ public class Interpreter {
 	}
 	private void removepairs(ArrayList<String> parlist) {
 		for( String s : parlist) {
-			alist.get(s).pop();
+			SExpr x = alist.get(s).pop();
+			//System.out.println("removed "+s+" "+x.toString());
 		}
 		
 	}
-	private ArrayList<String> getlist(SExpr ex) throws MyException {
-		ArrayList<String> res = new ArrayList<String>();
+	private ArrayList<SExpr> getlist(SExpr ex) throws MyException {
+		ArrayList<SExpr> res = new ArrayList<SExpr>();
 		if(ex.isAtom()) {
 			if(!isNIL(ex))
-				res.add(ex.name);
+				res.add(ex);
 		} else {
-			res.add(car(ex).name);
+			res.add(car(ex));
 			res.addAll(getlist(cdr(ex)));			
 		}
 		return res;
 	}
-	private void addpairs(ArrayList<String> parlist, ArrayList<String> arglist) throws MyException {
+	private void addpairs(ArrayList<String> parlist, ArrayList<SExpr> arglist) throws MyException {
 		if(parlist.size() != arglist.size())
 			throw new MyException("function expects "+parlist.size()+" arguments, received "+arglist.size()+" arguments");
 		int i =0;
 		for(String s : parlist) {
-			Stack<String> stack = alist.getOrDefault(s, new Stack<String>());
+			//System.out.println("added "+s+" "+arglist.get(i).toString());
+			Stack<SExpr> stack = alist.getOrDefault(s, new Stack<SExpr>());
 			stack.add(arglist.get(i++));
 			alist.put(s, stack);
 		}

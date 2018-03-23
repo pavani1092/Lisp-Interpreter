@@ -38,7 +38,7 @@ public class LispInterpreter {
 			System.out.println((count++)+". Empty Input");
 		else {
 			ParseInput parser = new ParseInput(e);
-			System.out.print((count++)+". ");
+			//System.out.print((count++)+". ");
 			try {
 				Interpreter in = new Interpreter();
 				SExpr parse = parser.process();
