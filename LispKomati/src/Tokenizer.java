@@ -47,6 +47,8 @@ public class Tokenizer {
 					ParseInput.current = null;
 					throw new MyException(" Invalid int atom with more than 6 digits.  ") ;
 				}else
+					if(str.charAt(0)=='+')
+						str = str.substring(1);
 					ParseInput.current = new SExpr(str,Utility.INT_ATOM);
 			}
 			else if(str.matches("^[A-Za-z]+[0-9]*[A-Za-z]*?$")) {
